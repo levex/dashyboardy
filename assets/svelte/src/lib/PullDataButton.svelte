@@ -116,6 +116,7 @@
     font-size: 0.85rem;
     font-weight: 600;
     padding: 0.5rem 0.75rem;
+    white-space: nowrap;
   }
 
   .button:disabled {
@@ -145,11 +146,13 @@
     border-radius: 10px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     margin-top: 0.35rem;
+    max-height: min(60vh, 420px);
+    overflow: auto;
     padding: 0.75rem;
     position: absolute;
     right: 0;
     top: 100%;
-    width: min(360px, 90vw);
+    width: min(360px, calc(100vw - 2rem));
     z-index: 20;
   }
 

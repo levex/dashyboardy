@@ -9,7 +9,7 @@
 
 <section class="widget" class:collapsed>
   <header class="widget-header">
-    <h2>{title}</h2>
+    <h2 class="truncate">{title}</h2>
     {#if onToggle}
       <button class="toggle" onclick={onToggle} aria-label="Toggle widget">
         {collapsed ? '+' : '−'}
@@ -27,25 +27,31 @@
   .widget {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius);
     display: flex;
     flex-direction: column;
+    height: 100%;
     min-height: 0;
+    min-width: 0;
     overflow: hidden;
   }
 
   .widget-header {
     align-items: center;
-    border-bottom: 1px solid var(--border);
+    background: var(--surface-raised);
     display: flex;
+    flex-shrink: 0;
+    gap: 0.5rem;
     justify-content: space-between;
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 0.85rem;
   }
 
   .widget-header h2 {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 600;
+    letter-spacing: 0.01em;
     margin: 0;
+    min-width: 0;
   }
 
   .toggle {
@@ -54,19 +60,31 @@
     border-radius: 6px;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 1rem;
+    flex-shrink: 0;
+    font-size: 0.95rem;
     line-height: 1;
     padding: 0.1rem 0.45rem;
+  }
+
+  .toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   .widget-body {
     flex: 1;
     min-height: 0;
+    min-width: 0;
     overflow: auto;
-    padding: 0.75rem 1rem;
+    overscroll-behavior: contain;
+    padding: 0.65rem 0.85rem;
   }
 
   .collapsed .widget-header {
     border-bottom: none;
+  }
+
+  .collapsed {
+    height: auto;
   }
 </style>

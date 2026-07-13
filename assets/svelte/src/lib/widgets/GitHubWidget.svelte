@@ -1,13 +1,29 @@
 <script lang="ts">
   import { api, relativeTime, type GitHubCommit } from '../api'
 
-  let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
+  let {
+    refreshToken = 0,
+    selectedRepo = 'all',
+    onRepoChange
+  } = $props<{
+    refreshToken?: number
+    selectedRepo?: string
+    onRepoChange?: (repo: string) => void
+  }>()
 
   let commits = $state<GitHubCommit[]>([])
+  let repos = $state<string[]>([])
+
+  function repoLabel(repo: string) {
+    if (repo === 'all') return 'All repos'
+    const short = repo.split('/').pop() ?? repo
+    return short
+  }
 
   async function load() {
     try {
-      const data = await api.github()
+      const data = await api.github(selectedRepo === 'all' ? undefined : selectedRepo)
+      repos = data.repos
       commits = data.commits
     } catch {
       commits = []
@@ -16,58 +32,86 @@
 
   $effect(() => {
     refreshToken
+    selectedRepo
     load()
   })
 </script>
 
-<ul class="list">
+<div class="widget-toolbar">
+  <select
+    class="widget-select"
+    value={selectedRepo}
+    onchange={(e) => onRepoChange?.(e.currentTarget.value)}
+    aria-label="GitHub repository"
+  >
+    <option value="all">All repositories</option>
+    {#each repos as repo (repo)}
+      <option value={repo}>{repo}</option>
+    {/each}
+  </select>
+</div>
+
+<ul class="widget-list">
   {#each commits as commit (commit.id)}
-    <li>
+    <li class="commit">
       <div class="row">
-        <span class="repo">{commit.repo.split('/').pop()}</span>
+        {#if selectedRepo === 'all'}
+          <span class="repo truncate">{repoLabel(commit.repo)}</span>
+        {/if}
         <span class="time">{relativeTime(commit.committed_at)}</span>
       </div>
-      <a class="message" href={`https://github.com/${commit.repo}/commit/${commit.sha}`} target="_blank" rel="noreferrer">
+      <a
+        class="message line-clamp-2"
+        href={`https://github.com/${commit.repo}/commit/${commit.sha}`}
+        target="_blank"
+        rel="noreferrer"
+        title={commit.message}
+      >
         {commit.message}
       </a>
-      <div class="author">{commit.author ?? 'unknown'} · {commit.sha}</div>
+      <div class="meta truncate">{commit.author ?? 'unknown'} · {commit.sha}</div>
     </li>
   {:else}
-    <li class="empty">No commits loaded yet</li>
+    <li class="widget-empty">No commits for this repository yet</li>
   {/each}
 </ul>
 
 <style>
-  .list {
-    display: grid;
-    gap: 0.85rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .commit {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.65rem;
+  }
+
+  .commit:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
   }
 
   .row {
+    align-items: center;
     display: flex;
-    justify-content: space-between;
     gap: 0.5rem;
+    justify-content: space-between;
+    min-width: 0;
   }
 
   .repo {
     color: var(--accent);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
+    min-width: 0;
   }
 
   .time {
     color: var(--text-muted);
-    font-size: 0.75rem;
-    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.72rem;
   }
 
   .message {
     color: var(--text);
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin-top: 0.2rem;
     text-decoration: none;
   }
@@ -76,13 +120,14 @@
     color: var(--accent);
   }
 
-  .author {
+  .meta {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     margin-top: 0.15rem;
   }
 
-  .empty {
-    color: var(--text-muted);
+  .widget-select {
+    flex: 1;
+    min-width: 0;
   }
 </style>

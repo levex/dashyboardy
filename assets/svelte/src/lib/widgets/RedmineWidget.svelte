@@ -22,85 +22,62 @@
   })
 </script>
 
-<div class="toolbar">
-  <button class:active={!showAssigned} onclick={() => (showAssigned = false)}>Recent</button>
-  <button class:active={showAssigned} onclick={() => (showAssigned = true)}>Assigned to me</button>
+<div class="widget-toolbar">
+  <button class="chip" class:active={!showAssigned} onclick={() => (showAssigned = false)}>Recent</button>
+  <button class="chip" class:active={showAssigned} onclick={() => (showAssigned = true)}>Mine</button>
 </div>
 
-<ul class="list">
+<ul class="widget-list">
   {#each issues as issue (issue.id)}
-    <li>
+    <li class="item">
       <div class="row">
         <span class="id">#{issue.issue_id}</span>
         <span class="time">{relativeTime(issue.updated_at)}</span>
       </div>
-      <div class="title">{issue.title}</div>
-      <div class="meta">{issue.status} · {issue.assignee ?? 'unassigned'}</div>
+      <div class="title line-clamp-2">{issue.title}</div>
+      <div class="meta truncate">{issue.status} · {issue.assignee ?? 'unassigned'}</div>
     </li>
   {:else}
-    <li class="empty">No issues loaded yet</li>
+    <li class="widget-empty">No issues loaded yet</li>
   {/each}
 </ul>
 
 <style>
-  .toolbar {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
+  .item {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.65rem;
   }
 
-  button {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.65rem;
-  }
-
-  button.active {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .list {
-    display: grid;
-    gap: 0.85rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .item:last-child {
+    border-bottom: none;
   }
 
   .row {
     display: flex;
     justify-content: space-between;
+    gap: 0.5rem;
   }
 
   .id {
     color: var(--accent);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
   }
 
   .time {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    flex-shrink: 0;
+    font-size: 0.72rem;
   }
 
   .title {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin-top: 0.2rem;
   }
 
   .meta {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     margin-top: 0.15rem;
-  }
-
-  .empty {
-    color: var(--text-muted);
   }
 </style>

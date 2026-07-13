@@ -13,7 +13,9 @@
   const time = $derived(
     now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   )
-  const date = $derived(now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }))
+  const date = $derived(
+    now.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' })
+  )
 </script>
 
 <div class="clock">
@@ -24,19 +26,21 @@
 <style>
   .clock {
     display: grid;
-    gap: 0.35rem;
-    place-items: center;
+    gap: 0.25rem;
+    height: 100%;
+    place-content: center;
     text-align: center;
   }
 
   .time {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 4vw, 2rem);
     font-variant-numeric: tabular-nums;
     font-weight: 700;
+    line-height: 1.1;
   }
 
   .date {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
 </style>

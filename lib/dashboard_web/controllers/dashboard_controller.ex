@@ -17,8 +17,17 @@ defmodule DashboardWeb.DashboardController do
     end
   end
 
-  def github(conn, _params) do
-    json(conn, %{commits: serialize_commits(Github.list_commits(limit: 30))})
+  def github(conn, params) do
+    repo =
+      case params["repo"] do
+        r when r in [nil, "", "all"] -> nil
+        r -> r
+      end
+
+    json(conn, %{
+      repos: Github.repos(),
+      commits: serialize_commits(Github.list_commits(repo: repo, limit: 30))
+    })
   end
 
   def redmine(conn, params) do

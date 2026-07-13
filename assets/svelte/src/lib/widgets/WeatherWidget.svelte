@@ -26,7 +26,7 @@
       <h3>{reading.city}</h3>
       {#if reading.temperature != null}
         <div class="temp">{Math.round(reading.temperature)}°C</div>
-        <div class="conditions">{reading.conditions}</div>
+        <div class="conditions truncate">{reading.conditions}</div>
         {#if reading.humidity != null}
           <div class="meta">{reading.humidity}% humidity</div>
         {/if}
@@ -42,26 +42,31 @@
   .grid {
     display: grid;
     gap: 0.75rem;
+    height: 100%;
+    place-content: center;
   }
 
   .city h3 {
-    font-size: 0.95rem;
-    margin: 0 0 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0 0 0.15rem;
   }
 
   .temp {
-    font-size: 1.75rem;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
     font-weight: 700;
+    line-height: 1.1;
   }
 
   .conditions {
     color: var(--text);
-    margin-top: 0.15rem;
+    font-size: 0.85rem;
+    margin-top: 0.1rem;
   }
 
   .meta {
     color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    margin-top: 0.2rem;
   }
 </style>

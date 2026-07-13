@@ -65,14 +65,31 @@
     api.saveLayout(layout).catch(() => undefined)
   }
 
+  function updateWidgetSettings(widgetId: string, settings: Record<string, string>) {
+    if (!layout) return
+    layout = {
+      ...layout,
+      widgets: layout.widgets.map((item) =>
+        item.id === widgetId
+          ? { ...item, settings: { ...item.settings, ...settings } }
+          : item
+      )
+    }
+    api.saveLayout(layout).catch(() => undefined)
+  }
+
   function widgetStyle(widget: LayoutWidget) {
-    return `grid-column: span ${widget.w}; grid-row: span ${widget.h};`
+    return `grid-column: ${widget.x + 1} / span ${widget.w}; grid-row: ${widget.y + 1} / span ${widget.h};`
+  }
+
+  function githubWidget() {
+    return layout?.widgets.find((w) => w.id === 'github')
   }
 </script>
 
 <div class="app">
   <header class="topbar">
-    <div>
+    <div class="brand">
       <h1>Personal Dashboard</h1>
       {#if user}
         <p class="subtitle">{user.display_name}</p>
@@ -81,7 +98,7 @@
     <div class="actions">
       {#if user}
         <PullDataButton onPulled={() => refreshToken++} />
-        <button class="button" onclick={signOut}>Sign out</button>
+        <button class="btn-signout" onclick={signOut}>Sign out</button>
       {/if}
     </div>
   </header>
@@ -91,9 +108,9 @@
   {:else if !user}
     <LoginPanel onSuccess={handleAuth} />
   {:else if layout}
-    <main class="grid" style={`--columns: ${layout.columns}`}>
+    <main class="dashboard-grid">
       {#each layout.widgets as widget (widget.id)}
-        <div style={widgetStyle(widget)}>
+        <div class="widget-cell" style={widgetStyle(widget)}>
           <Widget
             title={titles[widget.id] ?? widget.id}
             collapsed={widget.collapsed}
@@ -104,7 +121,11 @@
             {:else if widget.id === 'weather'}
               <WeatherWidget {refreshToken} />
             {:else if widget.id === 'github'}
-              <GitHubWidget {refreshToken} />
+              <GitHubWidget
+                {refreshToken}
+                selectedRepo={githubWidget()?.settings?.repo ?? 'all'}
+                onRepoChange={(repo) => updateWidgetSettings('github', { repo })}
+              />
             {:else if widget.id === 'redmine'}
               <RedmineWidget {refreshToken} />
             {:else if widget.id === 'rss'}
@@ -122,51 +143,76 @@
 <style>
   .app {
     margin: 0 auto;
-    max-width: 1400px;
+    max-width: 1440px;
     min-height: 100vh;
-    padding: 1.25rem;
+    padding: 1rem 1.25rem 1.5rem;
+    width: 100%;
   }
 
   .topbar {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .brand {
+    min-width: 0;
   }
 
   h1 {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     margin: 0;
   }
 
   .subtitle {
     color: var(--text-muted);
-    font-size: 0.85rem;
-    margin: 0.2rem 0 0;
+    font-size: 0.8rem;
+    margin: 0.15rem 0 0;
   }
 
   .actions {
     align-items: center;
     display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
     gap: 0.5rem;
+    justify-content: flex-end;
   }
 
-  .button {
+  .btn-signout {
     background: var(--accent);
     border: none;
     border-radius: 8px;
     color: #081018;
     cursor: pointer;
-    display: inline-block;
+    font-size: 0.85rem;
     font-weight: 600;
-    padding: 0.55rem 0.9rem;
+    padding: 0.5rem 0.85rem;
+    white-space: nowrap;
   }
 
-  .grid {
+  .dashboard-grid {
     display: grid;
-    gap: 1rem;
-    grid-auto-rows: 80px;
-    grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+    gap: 0.85rem;
+    grid-auto-rows: var(--row-height);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .widget-cell {
+    display: flex;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .widget-cell :global(.widget) {
+    flex: 1;
+    width: 100%;
   }
 
   .center {
@@ -175,5 +221,17 @@
     display: grid;
     min-height: 50vh;
     place-items: center;
+  }
+
+  @media (max-width: 1100px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .widget-cell {
+      grid-column: 1 / -1 !important;
+      grid-row: auto !important;
+      min-height: 220px;
+    }
   }
 </style>

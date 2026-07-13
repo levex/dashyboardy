@@ -24,92 +24,67 @@
   })
 </script>
 
-<div class="toolbar">
+<div class="widget-toolbar">
   {#each sources as item (item)}
-    <button class:active={source === item} onclick={() => (source = item)}>{item}</button>
+    <button class="chip" class:active={source === item} onclick={() => (source = item)}>{item}</button>
   {/each}
 </div>
 
-<ul class="list">
+<ul class="widget-list">
   {#each activities as activity (activity.id)}
-    <li>
+    <li class="item">
       <div class="row">
         <span class="badge">{activity.source}</span>
         <span class="time">{relativeTime(activity.occurred_at)}</span>
       </div>
       {#if activity.url}
-        <a class="title" href={activity.url} target="_blank" rel="noreferrer">{activity.title}</a>
+        <a class="title line-clamp-2" href={activity.url} target="_blank" rel="noreferrer">{activity.title}</a>
       {:else}
-        <div class="title">{activity.title}</div>
+        <div class="title line-clamp-2">{activity.title}</div>
       {/if}
-      {#if activity.author}
-        <div class="meta">{activity.author} · {activity.source_instance}</div>
-      {:else}
-        <div class="meta">{activity.source_instance}</div>
-      {/if}
+      <div class="meta truncate">{activity.author ?? activity.source_instance}</div>
     </li>
   {:else}
-    <li class="empty">No activity yet</li>
+    <li class="widget-empty">No activity yet</li>
   {/each}
 </ul>
 
 <style>
-  .toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
+  .item {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.65rem;
   }
 
-  button {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.65rem;
-    text-transform: capitalize;
-  }
-
-  button.active {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .list {
-    display: grid;
-    gap: 0.85rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .item:last-child {
+    border-bottom: none;
   }
 
   .row {
     display: flex;
     justify-content: space-between;
+    gap: 0.5rem;
   }
 
   .badge {
     background: var(--accent-soft);
     border-radius: 999px;
     color: var(--accent);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 600;
-    padding: 0.1rem 0.5rem;
+    padding: 0.1rem 0.45rem;
     text-transform: uppercase;
   }
 
   .time {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    flex-shrink: 0;
+    font-size: 0.72rem;
   }
 
   .title {
     color: var(--text);
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin-top: 0.2rem;
     text-decoration: none;
   }
@@ -120,11 +95,7 @@
 
   .meta {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     margin-top: 0.15rem;
-  }
-
-  .empty {
-    color: var(--text-muted);
   }
 </style>

@@ -5,6 +5,7 @@ export type LayoutWidget = {
   w: number
   h: number
   collapsed: boolean
+  settings?: Record<string, string>
 }
 
 export type Layout = {
@@ -117,7 +118,10 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ layout })
     }),
-  github: () => request<{ commits: GitHubCommit[] }>('/api/github'),
+  github: (repo?: string) => {
+    const params = repo ? `?repo=${encodeURIComponent(repo)}` : ''
+    return request<{ repos: string[]; commits: GitHubCommit[] }>(`/api/github${params}`)
+  },
   redmine: (assigned = false) =>
     request<{ issues: RedmineIssue[] }>(`/api/redmine${assigned ? '?assigned=true' : ''}`),
   rss: (opts: { unread?: boolean; saved?: boolean } = {}) => {
