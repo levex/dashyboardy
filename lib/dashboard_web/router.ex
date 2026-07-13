@@ -42,6 +42,7 @@ defmodule DashboardWeb.Router do
     put "/rss/:id/saved", DashboardController, :mark_rss_saved
     get "/weather", DashboardController, :weather
     get "/timeline", DashboardController, :timeline
+    post "/collectors/pull", DashboardController, :pull
   end
 
   scope "/", DashboardWeb do

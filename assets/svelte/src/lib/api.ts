@@ -74,6 +74,23 @@ export type User = {
   backup_codes_remaining?: number
 }
 
+export type CollectorFailure = {
+  name: string
+  error: string
+}
+
+export type CollectorPullResult = {
+  source: string
+  status: 'ok' | 'error' | 'partial' | 'skipped'
+  message: string
+  failures: CollectorFailure[]
+}
+
+export type CollectorPullResponse = {
+  pulled_at: string
+  results: CollectorPullResult[]
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     credentials: 'include',
@@ -118,7 +135,8 @@ export const api = {
     }),
   weather: () => request<{ readings: WeatherReading[] }>('/api/weather'),
   timeline: (source?: string) =>
-    request<{ activities: Activity[] }>(`/api/timeline${source ? `?source=${source}` : ''}`)
+    request<{ activities: Activity[] }>(`/api/timeline${source ? `?source=${source}` : ''}`),
+  pull: () => request<CollectorPullResponse>('/api/collectors/pull', { method: 'POST' })
 }
 
 export function relativeTime(iso: string | null): string {

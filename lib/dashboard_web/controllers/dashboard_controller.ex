@@ -85,6 +85,10 @@ defmodule DashboardWeb.DashboardController do
     json(conn, %{activities: serialize_activities(activities)})
   end
 
+  def pull(conn, _params) do
+    json(conn, Dashboard.Collectors.pull_all())
+  end
+
   defp maybe_add(opts, _key, nil), do: opts
   defp maybe_add(opts, _key, ""), do: opts
   defp maybe_add(opts, key, value), do: Keyword.put(opts, key, value)

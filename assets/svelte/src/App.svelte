@@ -10,10 +10,12 @@
   import RedmineWidget from './lib/widgets/RedmineWidget.svelte'
   import RssWidget from './lib/widgets/RssWidget.svelte'
   import TimelineWidget from './lib/widgets/TimelineWidget.svelte'
+  import PullDataButton from './lib/PullDataButton.svelte'
 
   let user = $state<User | null>(null)
   let layout = $state<Layout | null>(null)
   let loading = $state(true)
+  let refreshToken = $state(0)
 
   const titles: Record<string, string> = {
     clock: 'Time',
@@ -78,6 +80,7 @@
     </div>
     <div class="actions">
       {#if user}
+        <PullDataButton onPulled={() => refreshToken++} />
         <button class="button" onclick={signOut}>Sign out</button>
       {/if}
     </div>
@@ -99,15 +102,15 @@
             {#if widget.id === 'clock'}
               <ClockWidget />
             {:else if widget.id === 'weather'}
-              <WeatherWidget />
+              <WeatherWidget {refreshToken} />
             {:else if widget.id === 'github'}
-              <GitHubWidget />
+              <GitHubWidget {refreshToken} />
             {:else if widget.id === 'redmine'}
-              <RedmineWidget />
+              <RedmineWidget {refreshToken} />
             {:else if widget.id === 'rss'}
-              <RssWidget />
+              <RssWidget {refreshToken} />
             {:else if widget.id === 'timeline'}
-              <TimelineWidget />
+              <TimelineWidget {refreshToken} />
             {/if}
           </Widget>
         </div>
@@ -140,6 +143,12 @@
     color: var(--text-muted);
     font-size: 0.85rem;
     margin: 0.2rem 0 0;
+  }
+
+  .actions {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
   }
 
   .button {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api, relativeTime, type RssEntry } from '../api'
-  import { onMount } from 'svelte'
+
+  let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
   let entries = $state<RssEntry[]>([])
   let filter = $state<'all' | 'unread' | 'saved'>('all')
@@ -17,9 +18,8 @@
     }
   }
 
-  onMount(load)
-
   $effect(() => {
+    refreshToken
     filter
     load()
   })
@@ -45,7 +45,7 @@
 </div>
 
 <ul class="list">
-  {#each entries as entry}
+  {#each entries as entry (entry.id)}
     <li class:unread={!entry.read}>
       <div class="row">
         <a class="title" href={entry.url} target="_blank" rel="noreferrer" onclick={() => toggleRead(entry)}>

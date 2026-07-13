@@ -1,21 +1,27 @@
 <script lang="ts">
   import { api, relativeTime, type WeatherReading } from '../api'
-  import { onMount } from 'svelte'
+
+  let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
   let readings = $state<WeatherReading[]>([])
 
-  onMount(async () => {
+  async function load() {
     try {
       const data = await api.weather()
       readings = data.readings
     } catch {
       readings = []
     }
+  }
+
+  $effect(() => {
+    refreshToken
+    load()
   })
 </script>
 
 <div class="grid">
-  {#each readings as reading}
+  {#each readings as reading (reading.city)}
     <article class="city">
       <h3>{reading.city}</h3>
       {#if reading.temperature != null}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api, relativeTime, type Activity } from '../api'
-  import { onMount } from 'svelte'
+
+  let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
   let activities = $state<Activity[]>([])
   let source = $state<string>('all')
@@ -16,22 +17,21 @@
     }
   }
 
-  onMount(load)
-
   $effect(() => {
+    refreshToken
     source
     load()
   })
 </script>
 
 <div class="toolbar">
-  {#each sources as item}
+  {#each sources as item (item)}
     <button class:active={source === item} onclick={() => (source = item)}>{item}</button>
   {/each}
 </div>
 
 <ul class="list">
-  {#each activities as activity}
+  {#each activities as activity (activity.id)}
     <li>
       <div class="row">
         <span class="badge">{activity.source}</span>

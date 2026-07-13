@@ -1,21 +1,27 @@
 <script lang="ts">
   import { api, relativeTime, type GitHubCommit } from '../api'
-  import { onMount } from 'svelte'
+
+  let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
   let commits = $state<GitHubCommit[]>([])
 
-  onMount(async () => {
+  async function load() {
     try {
       const data = await api.github()
       commits = data.commits
     } catch {
       commits = []
     }
+  }
+
+  $effect(() => {
+    refreshToken
+    load()
   })
 </script>
 
 <ul class="list">
-  {#each commits as commit}
+  {#each commits as commit (commit.id)}
     <li>
       <div class="row">
         <span class="repo">{commit.repo.split('/').pop()}</span>

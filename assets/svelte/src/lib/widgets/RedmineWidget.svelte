@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api, relativeTime, type RedmineIssue } from '../api'
-  import { onMount } from 'svelte'
+
+  let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
   let issues = $state<RedmineIssue[]>([])
   let showAssigned = $state(false)
@@ -14,9 +15,8 @@
     }
   }
 
-  onMount(load)
-
   $effect(() => {
+    refreshToken
     showAssigned
     load()
   })
@@ -28,7 +28,7 @@
 </div>
 
 <ul class="list">
-  {#each issues as issue}
+  {#each issues as issue (issue.id)}
     <li>
       <div class="row">
         <span class="id">#{issue.issue_id}</span>
