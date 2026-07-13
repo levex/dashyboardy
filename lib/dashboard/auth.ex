@@ -6,7 +6,7 @@ defmodule Dashboard.Auth do
   import Ecto.Query
   alias Dashboard.Repo
   alias Dashboard.Accounts.User
-  alias Dashboard.Auth.{Credential, BackupCode}
+  alias Dashboard.Auth.{Credential, BackupCode, CoseKeyCodec}
 
   def enrolled? do
     Repo.exists?(from c in Credential, select: 1, limit: 1)
@@ -20,7 +20,7 @@ defmodule Dashboard.Auth do
 
   def credential_pairs do
     for cred <- list_credentials() do
-      {cred.credential_id, cred.public_key}
+      {cred.credential_id, CoseKeyCodec.decode(cred.public_key)}
     end
   end
 
@@ -28,27 +28,29 @@ defmodule Dashboard.Auth do
     Repo.get_by(Credential, credential_id: credential_id)
   end
 
-  def create_owner!(user_handle, credential_id, public_key, sign_count, label \\ nil) do
+  def create_owner!(user_handle, credential_id, cose_key, sign_count, label \\ nil) do
+    public_key = CoseKeyCodec.encode(cose_key)
+
     Repo.transaction(fn ->
-      {:ok, user} =
-        %User{}
-        |> User.changeset(%{display_name: "Owner", user_handle: user_handle})
-        |> Repo.insert()
-
-      {:ok, credential} =
-        %Credential{}
-        |> Credential.changeset(%{
-          user_id: user.id,
-          credential_id: credential_id,
-          public_key: public_key,
-          sign_count: sign_count,
-          label: label
-        })
-        |> Repo.insert()
-
-      backup_codes = generate_backup_codes!(user.id)
-
-      {user, credential, backup_codes}
+      with {:ok, user} <-
+             %User{}
+             |> User.changeset(%{display_name: "Owner", user_handle: user_handle})
+             |> Repo.insert(),
+           {:ok, credential} <-
+             %Credential{}
+             |> Credential.changeset(%{
+               user_id: user.id,
+               credential_id: credential_id,
+               public_key: public_key,
+               sign_count: sign_count,
+               label: label
+             })
+             |> Repo.insert() do
+        backup_codes = generate_backup_codes!(user.id)
+        {user, credential, backup_codes}
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
     end)
     |> case do
       {:ok, result} -> result
@@ -56,7 +58,9 @@ defmodule Dashboard.Auth do
     end
   end
 
-  def add_credential!(user_id, credential_id, public_key, sign_count, label \\ nil) do
+  def add_credential!(user_id, credential_id, cose_key, sign_count, label \\ nil) do
+    public_key = CoseKeyCodec.encode(cose_key)
+
     %Credential{}
     |> Credential.changeset(%{
       user_id: user_id,

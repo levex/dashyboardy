@@ -59,11 +59,11 @@ defmodule DashboardWeb.AuthController do
       credential_id = credential["id"]
       sign_count = authenticator_data.sign_count
 
-      public_key =
+      cose_key =
         authenticator_data.attested_credential_data.credential_public_key
 
       {user, _credential, backup_codes} =
-        Auth.create_owner!(user_handle, credential_id, public_key, sign_count)
+        Auth.create_owner!(user_handle, credential_id, cose_key, sign_count)
 
       conn
       |> delete_session(:registration_challenge)
