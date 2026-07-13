@@ -54,10 +54,9 @@ defmodule Dashboard.MixProject do
       {:bandit, "~> 1.5"},
       {:quantum, "~> 3.5"},
       {:crontab, "~> 1.1"},
-      {:ueberauth, "~> 0.10"},
-      {:ueberauth_google, "~> 0.12"},
-      {:fast_rss, "~> 0.5"},
-      {:joken, "~> 2.6"}
+      {:wax_, "~> 0.7"},
+      {:bcrypt_elixir, "~> 3.0"},
+      {:fast_rss, "~> 0.5"}
     ]
   end
 

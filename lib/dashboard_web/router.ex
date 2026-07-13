@@ -17,19 +17,17 @@ defmodule DashboardWeb.Router do
     plug DashboardWeb.Plugs.RequireAuth
   end
 
-  scope "/auth", DashboardWeb do
-    pipe_through :browser
-
-    get "/:provider", AuthController, :request
-    get "/:provider/callback", AuthController, :callback
-    get "/logout", AuthController, :logout
-    delete "/logout", AuthController, :logout
-  end
-
   scope "/api", DashboardWeb do
     pipe_through :api
 
+    get "/auth/status", AuthController, :status
     get "/auth/me", AuthController, :me
+    post "/auth/register/options", AuthController, :register_options
+    post "/auth/register/verify", AuthController, :register_verify
+    post "/auth/login/options", AuthController, :login_options
+    post "/auth/login/verify", AuthController, :login_verify
+    post "/auth/backup", AuthController, :backup_login
+    post "/auth/logout", AuthController, :logout
   end
 
   scope "/api", DashboardWeb do

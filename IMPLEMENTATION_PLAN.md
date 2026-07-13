@@ -12,7 +12,7 @@ Phased rollout for the personal dashboard MVP and follow-on improvements.
 - [x] Quantum scheduler with non-overlapping collector lock
 - [x] Collector modules: GitHub, Redmine, RSS, Weather, Cleanup
 - [x] Retention policy in nightly cleanup job
-- [x] Google OAuth with single `ALLOWED_EMAIL` gate
+- [x] Passkey (WebAuthn) auth with backup codes
 - [x] Svelte 5 SPA with dark-mode dashboard widgets
 - [x] Persisted widget layout (collapse state)
 - [x] Fly.io `fly.toml` + `Dockerfile` with volume mount
@@ -79,9 +79,8 @@ mix phx.server
    ```bash
    fly secrets set \
      SECRET_KEY_BASE=... \
-     GOOGLE_CLIENT_ID=... \
-     GOOGLE_CLIENT_SECRET=... \
-     ALLOWED_EMAIL=... \
+     WEBAUTHN_ORIGIN=https://your-app.fly.dev \
+     WEBAUTHN_RP_ID=your-app.fly.dev \
      GITHUB_TOKEN=... \
      REDMINE_URL=... \
      REDMINE_API_KEY=... \
@@ -123,7 +122,7 @@ Browser (Svelte)
     │  session cookie
     ▼
 Phoenix Endpoint
-    ├── /auth/*        → Ueberauth Google
+    ├── /api/auth/*    → WebAuthn registration/login + backup codes
     ├── /api/*         → JSON controllers (secrets never exposed)
     └── /*             → priv/static SPA
 
@@ -170,4 +169,4 @@ Dashboard.Repo (SQLite on Fly Volume)
 - **GitHub rate limits:** Use authenticated requests; App auth preferred for production.
 - **Redmine SSO:** Bypass header must match reverse-proxy config exactly (`Name: Value` or separate env vars).
 - **SQLite on Fly:** Single machine + volume = simple ops; not horizontally scalable without redesign.
-- **OAuth redirect:** Set Google OAuth redirect URI to `https://<app>.fly.dev/auth/google/callback`.
+- **WebAuthn RP ID:** `WEBAUTHN_RP_ID` must match your deployment hostname (e.g. `your-app.fly.dev`).

@@ -3,20 +3,19 @@ defmodule Dashboard.Accounts.User do
   import Ecto.Changeset
 
   schema "users" do
-    field :email, :string
-    field :name, :string
-    field :google_id, :string
+    field :display_name, :string, default: "Owner"
+    field :user_handle, :binary
 
     has_one :widget_layout, Dashboard.Widgets.Layout
+    has_many :credentials, Dashboard.Auth.Credential
+    has_many :backup_codes, Dashboard.Auth.BackupCode
 
     timestamps(type: :utc_datetime)
   end
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :name, :google_id])
-    |> validate_required([:email, :google_id])
-    |> unique_constraint(:email)
-    |> unique_constraint(:google_id)
+    |> cast(attrs, [:display_name, :user_handle])
+    |> validate_required([:display_name, :user_handle])
   end
 end

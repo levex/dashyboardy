@@ -8,7 +8,7 @@ Self-hosted personal dashboard aggregating GitHub, Redmine, RSS, and weather int
 - **Frontend:** Svelte 5
 - **Database:** SQLite (WAL mode, Fly Volume in production)
 - **Scheduler:** Quantum (no Oban)
-- **Auth:** Google OAuth (single allowed account)
+- **Auth:** Passkeys (WebAuthn) with one-time backup codes
 - **Deploy:** Fly.io
 
 ## Quick Start
@@ -22,21 +22,36 @@ mix assets.setup
 mix assets.build
 
 # Set environment variables (see .env.example)
-export GOOGLE_CLIENT_ID=...
-export GOOGLE_CLIENT_SECRET=...
-export ALLOWED_EMAIL=you@example.com
 
-# Start server
+# Start server — first visit will prompt passkey enrollment
 mix phx.server
 ```
 
-Visit http://localhost:4000 and sign in with Google.
+Visit http://localhost:4000 and enroll a passkey on first launch.
+
+## Authentication
+
+The dashboard uses **passkeys** (WebAuthn) — no Google account or password required.
+
+1. **First visit:** enroll a passkey (Touch ID, Windows Hello, YubiKey, etc.)
+2. **You'll receive 10 backup codes** — save them somewhere safe
+3. **Later visits:** sign in with your passkey, or use a backup code if needed
+
+Configure WebAuthn for production:
+
+```bash
+WEBAUTHN_ORIGIN=https://your-app.fly.dev
+WEBAUTHN_RP_ID=your-app.fly.dev
+```
+
+The Redmine SSO bypass header is unrelated — it only lets the **server collector** reach Redmine behind SSO.
 
 ## Architecture
 
 ```
 lib/dashboard/
-  accounts/          # OAuth user
+  accounts/          # Dashboard owner
+  auth/              # Passkey credentials + backup codes
   activities/        # Unified activity model
   collectors/        # GitHub, Redmine, RSS, Weather, Cleanup
   scheduler.ex       # Quantum cron jobs
@@ -70,6 +85,10 @@ See `fly.toml` and `Dockerfile`. Requires a Fly Volume mounted at `/data`.
 
 ```bash
 fly volumes create dashboard_data --size 1
-fly secrets set SECRET_KEY_BASE=$(mix phx.gen.secret) ...
+fly secrets set \
+  SECRET_KEY_BASE=... \
+  WEBAUTHN_ORIGIN=https://your-app.fly.dev \
+  WEBAUTHN_RP_ID=your-app.fly.dev \
+  GITHUB_TOKEN=... \
 fly deploy
 ```

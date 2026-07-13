@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { api, type Layout, type LayoutWidget, type User } from './lib/api'
+  import { api, type Layout, type LayoutWidget } from './lib/api'
+  import { authApi, type User } from './lib/webauthn'
+  import LoginPanel from './lib/LoginPanel.svelte'
   import Widget from './lib/Widget.svelte'
   import ClockWidget from './lib/widgets/ClockWidget.svelte'
   import WeatherWidget from './lib/widgets/WeatherWidget.svelte'
@@ -27,13 +29,28 @@
       const me = await api.me()
       if (me.authenticated && me.user) {
         user = me.user
-        const data = await api.layout()
-        layout = data.layout
+        await loadLayout()
       }
     } finally {
       loading = false
     }
   })
+
+  async function loadLayout() {
+    const data = await api.layout()
+    layout = data.layout
+  }
+
+  async function handleAuth(nextUser: User) {
+    user = nextUser
+    await loadLayout()
+  }
+
+  async function signOut() {
+    await authApi.logout()
+    user = null
+    layout = null
+  }
 
   function toggleWidget(widget: LayoutWidget) {
     if (!layout) return
@@ -56,14 +73,12 @@
     <div>
       <h1>Personal Dashboard</h1>
       {#if user}
-        <p class="subtitle">Signed in as {user.email}</p>
+        <p class="subtitle">{user.display_name}</p>
       {/if}
     </div>
     <div class="actions">
       {#if user}
-        <a class="button" href="/auth/logout">Sign out</a>
-      {:else}
-        <a class="button" href="/auth/google">Sign in with Google</a>
+        <button class="button" onclick={signOut}>Sign out</button>
       {/if}
     </div>
   </header>
@@ -71,11 +86,7 @@
   {#if loading}
     <div class="center">Loading…</div>
   {:else if !user}
-    <div class="center card">
-      <h2>Welcome</h2>
-      <p>Sign in with your Google account to view your dashboard.</p>
-      <a class="button" href="/auth/google">Sign in with Google</a>
-    </div>
+    <LoginPanel onSuccess={handleAuth} />
   {:else if layout}
     <main class="grid" style={`--columns: ${layout.columns}`}>
       {#each layout.widgets as widget (widget.id)}
@@ -131,7 +142,6 @@
     margin: 0.2rem 0 0;
   }
 
-  .actions .button,
   .button {
     background: var(--accent);
     border: none;
@@ -141,7 +151,6 @@
     display: inline-block;
     font-weight: 600;
     padding: 0.55rem 0.9rem;
-    text-decoration: none;
   }
 
   .grid {
@@ -155,23 +164,7 @@
     align-items: center;
     color: var(--text-muted);
     display: grid;
-    gap: 0.75rem;
-    justify-items: center;
     min-height: 50vh;
-    text-align: center;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin: 0 auto;
-    max-width: 420px;
-    padding: 2rem;
-  }
-
-  .card h2 {
-    color: var(--text);
-    margin: 0;
+    place-items: center;
   }
 </style>

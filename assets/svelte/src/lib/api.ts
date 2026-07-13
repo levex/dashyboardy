@@ -70,8 +70,8 @@ export type Activity = {
 
 export type User = {
   id: number
-  email: string
-  name: string | null
+  display_name: string
+  backup_codes_remaining?: number
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -92,7 +92,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  me: () => request<{ authenticated: boolean; user?: User }>('/api/auth/me'),
+  me: () =>
+    request<{ authenticated: boolean; enrolled: boolean; user?: User }>('/api/auth/me'),
   layout: () => request<{ layout: Layout }>('/api/layout'),
   saveLayout: (layout: Layout) =>
     request<{ ok: boolean }>('/api/layout', {

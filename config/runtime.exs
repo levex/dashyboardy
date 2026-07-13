@@ -36,16 +36,15 @@ if config_env() == :prod do
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
 
   config :dashboard,
-    allowed_email: System.get_env("ALLOWED_EMAIL"),
     github_token: System.get_env("GITHUB_TOKEN"),
     redmine_url: System.get_env("REDMINE_URL"),
     redmine_api_key: System.get_env("REDMINE_API_KEY"),
     redmine_sso_bypass_header: System.get_env("REDMINE_SSO_BYPASS_HEADER"),
     redmine_assignee_name: System.get_env("REDMINE_ASSIGNEE_NAME")
 
-  config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-    client_id: System.get_env("GOOGLE_CLIENT_ID"),
-    client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
+  config :wax_,
+    origin: System.get_env("WEBAUTHN_ORIGIN") || "https://#{System.get_env("PHX_HOST")}",
+    rp_id: System.get_env("WEBAUTHN_RP_ID") || System.get_env("PHX_HOST")
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

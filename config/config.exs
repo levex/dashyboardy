@@ -10,21 +10,15 @@ import Config
 config :dashboard,
   ecto_repos: [Dashboard.Repo],
   generators: [timestamp_type: :utc_datetime],
-  allowed_email: System.get_env("ALLOWED_EMAIL"),
   github_token: System.get_env("GITHUB_TOKEN"),
   redmine_url: System.get_env("REDMINE_URL"),
   redmine_api_key: System.get_env("REDMINE_API_KEY"),
   redmine_sso_bypass_header: System.get_env("REDMINE_SSO_BYPASS_HEADER"),
   redmine_assignee_name: System.get_env("REDMINE_ASSIGNEE_NAME")
 
-config :ueberauth, Ueberauth,
-  providers: [
-    google: {Ueberauth.Strategy.Google, [default_scope: "email profile"]}
-  ]
-
-config :ueberauth, Ueberauth.Strategy.Google.OAuth,
-  client_id: System.get_env("GOOGLE_CLIENT_ID"),
-  client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
+config :wax_,
+  origin: System.get_env("WEBAUTHN_ORIGIN", "http://localhost:4000"),
+  rp_id: System.get_env("WEBAUTHN_RP_ID", "localhost")
 
 config :dashboard, Dashboard.Scheduler,
   jobs: [
