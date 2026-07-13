@@ -26,21 +26,23 @@
 <style>
   .clock {
     display: grid;
-    gap: 0.25rem;
+    gap: 0.4rem;
     height: 100%;
     place-content: center;
-    text-align: center;
   }
 
   .time {
-    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(2rem, 5vw, 3.15rem);
     font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    line-height: 1.1;
+    font-weight: 560;
+    letter-spacing: -0.055em;
+    line-height: 1;
   }
 
   .date {
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 </style>

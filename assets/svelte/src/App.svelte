@@ -90,13 +90,18 @@
 <div class="app">
   <header class="topbar">
     <div class="brand">
-      <h1>Personal Dashboard</h1>
-      {#if user}
-        <p class="subtitle">{user.display_name}</p>
-      {/if}
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div class="brand-copy">
+        <p class="eyebrow">Personal workspace</p>
+        <h1>Dashboard</h1>
+      </div>
     </div>
     <div class="actions">
       {#if user}
+        <div class="profile" title={user.display_name}>
+          <span class="avatar" aria-hidden="true">{user.display_name.slice(0, 1).toUpperCase()}</span>
+          <span class="profile-name">{user.display_name}</span>
+        </div>
         <PullDataButton onPulled={() => refreshToken++} />
         <button class="btn-signout" onclick={signOut}>Sign out</button>
       {/if}
@@ -108,7 +113,14 @@
   {:else if !user}
     <LoginPanel onSuccess={handleAuth} />
   {:else if layout}
-    <main class="dashboard-grid">
+    <div class="dashboard-heading">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h2>Your day at a glance</h2>
+      </div>
+      <p class="dashboard-note">Live data from your connected services</p>
+    </div>
+    <main class="dashboard-grid" aria-label="Dashboard widgets">
       {#each layout.widgets as widget (widget.id)}
         <div class="widget-cell" style={widgetStyle(widget)}>
           <Widget
@@ -143,64 +155,143 @@
 <style>
   .app {
     margin: 0 auto;
-    max-width: 1440px;
+    max-width: 1540px;
     min-height: 100vh;
-    padding: 1rem 1.25rem 1.5rem;
+    padding: 0 1.75rem 2rem;
     width: 100%;
   }
 
   .topbar {
-    align-items: flex-start;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1rem;
+    gap: 1.25rem;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    min-height: 74px;
   }
 
   .brand {
+    align-items: center;
+    display: flex;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  .brand-mark {
+    background: var(--accent);
+    border-radius: 3px;
+    box-shadow: 0 0 18px rgba(143, 168, 255, 0.28);
+    height: 26px;
+    width: 4px;
+  }
+
+  .brand-copy {
     min-width: 0;
   }
 
   h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: 1.05rem;
+    font-weight: 650;
+    letter-spacing: -0.015em;
     margin: 0;
   }
 
-  .subtitle {
+  .eyebrow {
     color: var(--text-muted);
-    font-size: 0.8rem;
-    margin: 0.15rem 0 0;
+    font-size: 0.65rem;
+    font-weight: 650;
+    letter-spacing: 0.11em;
+    margin: 0 0 0.08rem;
+    text-transform: uppercase;
   }
 
   .actions {
     align-items: center;
     display: flex;
     flex-shrink: 0;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.6rem;
     justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .profile {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    margin-right: 0.35rem;
+    max-width: 220px;
+    min-width: 0;
+  }
+
+  .avatar {
+    align-items: center;
+    background: var(--accent-soft);
+    border: 1px solid rgba(143, 168, 255, 0.25);
+    border-radius: 50%;
+    color: var(--accent);
+    display: flex;
+    flex: 0 0 auto;
+    font-size: 0.7rem;
+    font-weight: 700;
+    height: 28px;
+    justify-content: center;
+    width: 28px;
+  }
+
+  .profile-name {
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .btn-signout {
-    background: var(--accent);
-    border: none;
-    border-radius: 8px;
-    color: #081018;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    padding: 0.5rem 0.85rem;
+    padding: 0.45rem 0.6rem;
     white-space: nowrap;
+  }
+
+  .btn-signout:hover {
+    background: var(--surface-raised);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .dashboard-heading {
+    align-items: end;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 1.6rem 0 1rem;
+  }
+
+  .dashboard-heading h2 {
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+    font-weight: 620;
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .dashboard-note {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin: 0 0 0.15rem;
   }
 
   .dashboard-grid {
     display: grid;
-    gap: 0.85rem;
+    gap: 1rem;
     grid-auto-rows: var(--row-height);
     grid-template-columns: repeat(12, minmax(0, 1fr));
+    isolation: isolate;
     width: 100%;
   }
 
@@ -219,19 +310,66 @@
     align-items: center;
     color: var(--text-muted);
     display: grid;
-    min-height: 50vh;
+    min-height: calc(100vh - 74px);
     place-items: center;
   }
 
   @media (max-width: 1100px) {
-    .dashboard-grid {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-
     .widget-cell {
       grid-column: 1 / -1 !important;
       grid-row: auto !important;
-      min-height: 220px;
+      min-height: min(360px, 48vh);
+    }
+
+    .dashboard-grid {
+      grid-auto-rows: auto;
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .app {
+      padding: 0 1rem 1.25rem;
+    }
+
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem 0;
+    }
+
+    .actions {
+      justify-content: flex-start;
+      width: 100%;
+    }
+
+    .profile {
+      margin-right: auto;
+    }
+
+    .profile-name {
+      display: none;
+    }
+
+    .dashboard-heading {
+      align-items: flex-start;
+      flex-direction: column;
+      padding-top: 1.25rem;
+    }
+
+    .dashboard-note {
+      display: none;
+    }
+  }
+
+  @media (max-width: 460px) {
+    .actions {
+      flex-wrap: wrap;
+    }
+
+    .profile {
+      display: none;
     }
   }
 </style>

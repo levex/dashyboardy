@@ -76,6 +76,8 @@
   <div class="center">Loading…</div>
 {:else if backupCodes}
   <div class="card">
+    <span class="lock-mark" aria-hidden="true">✓</span>
+    <p class="eyebrow">Security setup</p>
     <h2>Save your backup codes</h2>
     <p class="hint">Store these somewhere safe. Each code works once if you lose your passkey.</p>
     <ul class="codes">
@@ -87,6 +89,8 @@
   </div>
 {:else}
   <div class="card">
+    <span class="lock-mark" aria-hidden="true">◆</span>
+    <p class="eyebrow">Private dashboard</p>
     <h2>{enrolled ? 'Sign in' : 'Set up your dashboard'}</h2>
 
     {#if !webAuthnSupported()}
@@ -113,7 +117,12 @@
             signInWithBackup()
           }}
         >
-          <input bind:value={backupCode} placeholder="xxxx-xxxx" autocomplete="one-time-code" />
+          <input
+            bind:value={backupCode}
+            placeholder="xxxx-xxxx"
+            autocomplete="one-time-code"
+            aria-label="Backup code"
+          />
           <button class="button secondary" disabled={busy || !backupCode}>Sign in</button>
         </form>
       {/if}
@@ -136,17 +145,42 @@
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     display: grid;
-    gap: 0.85rem;
-    margin: 0 auto;
+    gap: 0.9rem;
+    margin: min(14vh, 7rem) auto 0;
     max-width: 460px;
-    padding: 2rem;
+    padding: clamp(1.5rem, 5vw, 2.5rem);
     text-align: center;
+  }
+
+  .lock-mark {
+    align-items: center;
+    background: var(--accent-soft);
+    border: 1px solid rgba(143, 168, 255, 0.25);
+    border-radius: 12px;
+    color: var(--accent);
+    display: flex;
+    font-size: 0.8rem;
+    height: 42px;
+    justify-content: center;
+    margin: 0 auto 0.25rem;
+    width: 42px;
+  }
+
+  .eyebrow {
+    color: var(--text-muted);
+    font-size: 0.66rem;
+    font-weight: 650;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
   }
 
   h2 {
     color: var(--text);
+    font-size: 1.45rem;
+    letter-spacing: -0.035em;
     margin: 0;
   }
 
@@ -161,12 +195,17 @@
 
   .button {
     background: var(--accent);
-    border: none;
-    border-radius: 8px;
-    color: #081018;
+    border: 1px solid var(--accent);
+    border-radius: 7px;
+    color: #10131d;
     cursor: pointer;
-    font-weight: 600;
-    padding: 0.65rem 1rem;
+    font-weight: 700;
+    padding: 0.7rem 1rem;
+  }
+
+  .button:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
   }
 
   .button.secondary {
@@ -186,7 +225,6 @@
     color: var(--accent);
     cursor: pointer;
     font-size: 0.85rem;
-    text-decoration: underline;
   }
 
   .backup-form {
@@ -197,7 +235,7 @@
   input {
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 7px;
     color: var(--text);
     padding: 0.6rem 0.75rem;
   }
@@ -217,6 +255,6 @@
   }
 
   .error {
-    color: #ff8f8f;
+    color: var(--danger);
   }
 </style>

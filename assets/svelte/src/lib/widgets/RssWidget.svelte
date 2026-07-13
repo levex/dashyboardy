@@ -3,38 +3,35 @@
 
   let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
-  let entries = $state<RssEntry[]>([])
   let filter = $state<'all' | 'unread' | 'saved'>('all')
+  let localRefresh = $state(0)
 
-  async function load() {
-    try {
-      const data = await api.rss({
-        unread: filter === 'unread',
-        saved: filter === 'saved'
-      })
-      entries = data.entries
-    } catch {
-      entries = []
-    }
-  }
-
-  $effect(() => {
+  const entries = $derived.by(async (): Promise<RssEntry[]> => {
     refreshToken
     filter
-    load()
+    localRefresh
+    try {
+      return (
+        await api.rss({
+          unread: filter === 'unread',
+          saved: filter === 'saved'
+        })
+      ).entries
+    } catch {
+      return []
+    }
   })
 
   async function toggleRead(entry: RssEntry) {
     if (!entry.read) {
       await api.markRssRead(entry.id)
-      entry.read = true
+      localRefresh++
     }
   }
 
   async function toggleSaved(entry: RssEntry) {
-    const saved = !entry.saved
-    await api.markRssSaved(entry.id, saved)
-    entry.saved = saved
+    await api.markRssSaved(entry.id, !entry.saved)
+    localRefresh++
   }
 </script>
 
@@ -45,33 +42,39 @@
 </div>
 
 <ul class="widget-list">
-  {#each entries as entry (entry.id)}
-    <li class="item" class:unread={!entry.read}>
-      <div class="row">
-        <a
-          class="title line-clamp-2"
-          href={entry.url}
-          target="_blank"
-          rel="noreferrer"
-          onclick={() => toggleRead(entry)}
-        >
-          {entry.title}
-        </a>
-        <button class="save" class:saved={entry.saved} onclick={() => toggleSaved(entry)} aria-label="Save">
-          {entry.saved ? '★' : '☆'}
-        </button>
-      </div>
-      <div class="meta">{relativeTime(entry.published_at)}</div>
-    </li>
-  {:else}
-    <li class="widget-empty">No feed entries yet</li>
-  {/each}
+  {#await entries then loadedEntries}
+    {#each loadedEntries as entry (entry.id)}
+      <li class={{ item: true, unread: !entry.read }}>
+        <div class="row">
+          <a
+            class="title line-clamp-2"
+            href={entry.url}
+            target="_blank"
+            rel="noreferrer"
+            onclick={() => toggleRead(entry)}
+          >
+            {entry.title}
+          </a>
+          <button
+            class={{ save: true, saved: entry.saved }}
+            onclick={() => toggleSaved(entry)}
+            aria-label={entry.saved ? 'Remove from saved' : 'Save article'}
+            aria-pressed={entry.saved}
+          >
+            {entry.saved ? '★' : '☆'}
+          </button>
+        </div>
+        <div class="meta">{relativeTime(entry.published_at)}</div>
+      </li>
+    {:else}
+      <li class="widget-empty">No feed entries yet</li>
+    {/each}
+  {/await}
 </ul>
 
 <style>
   .item {
     border-bottom: 1px solid var(--border);
-    padding-bottom: 0.65rem;
   }
 
   .item:last-child {
@@ -86,9 +89,10 @@
   }
 
   .title {
-    color: var(--text);
+    color: var(--text-soft);
     flex: 1;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
     min-width: 0;
     text-decoration: none;
   }
@@ -103,21 +107,28 @@
 
   .save {
     background: none;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 5px;
     color: var(--text-muted);
     cursor: pointer;
     flex-shrink: 0;
     font-size: 0.95rem;
-    padding: 0;
+    line-height: 1;
+    padding: 0.18rem 0.25rem;
+  }
+
+  .save:hover {
+    background: var(--surface-hover);
+    color: var(--text-soft);
   }
 
   .save.saved {
-    color: #f5c542;
+    color: var(--warning);
   }
 
   .meta {
     color: var(--text-muted);
-    font-size: 0.72rem;
-    margin-top: 0.15rem;
+    font-size: 0.68rem;
+    margin-top: 0.25rem;
   }
 </style>

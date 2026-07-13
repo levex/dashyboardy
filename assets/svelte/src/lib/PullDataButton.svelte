@@ -57,24 +57,25 @@
 
 <div class="pull">
   <button class="button" disabled={pulling} onclick={pull}>
-    {pulling ? 'Pulling…' : 'Pull data'}
+    <span class:spinning={pulling} class="pull-icon" aria-hidden="true">↻</span>
+    {pulling ? 'Syncing…' : 'Sync data'}
   </button>
 
   {#if results}
     <button
-      class="status-toggle"
-      class:warn={hasProblems}
+      class={{ 'status-toggle': true, warn: hasProblems }}
       onclick={() => (open = !open)}
       aria-expanded={open}
     >
-      {hasProblems ? 'Some sources failed' : 'All sources OK'}
+      <span class="status-dot" aria-hidden="true"></span>
+      {hasProblems ? 'Needs attention' : 'Up to date'}
     </button>
   {/if}
 
   {#if open && results}
-    <div class="panel">
+    <div class="panel" aria-live="polite">
       {#if pulledAt}
-        <p class="meta">Last pull: {new Date(pulledAt).toLocaleString()}</p>
+        <p class="meta">Last synced {new Date(pulledAt).toLocaleString()}</p>
       {/if}
       <ul>
         {#each results as result (result.source)}
@@ -102,69 +103,105 @@
   .pull {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    min-width: 0;
     position: relative;
   }
 
   .button {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
+    align-items: center;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 7px;
+    color: #10131d;
     cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.5rem 0.75rem;
+    display: inline-flex;
+    font-size: 0.75rem;
+    font-weight: 700;
+    gap: 0.4rem;
+    padding: 0.45rem 0.65rem;
     white-space: nowrap;
+  }
+
+  .button:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
   }
 
   .button:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.65;
+  }
+
+  .pull-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+
+  .pull-icon.spinning {
+    animation: spin 900ms linear infinite;
   }
 
   .status-toggle {
-    background: rgba(93, 214, 192, 0.12);
-    border: 1px solid var(--accent);
+    align-items: center;
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 999px;
-    color: var(--accent);
+    color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.6rem;
+    display: inline-flex;
+    font-size: 0.68rem;
+    gap: 0.35rem;
+    padding: 0.35rem 0.45rem;
+    white-space: nowrap;
+  }
+
+  .status-toggle:hover {
+    background: var(--surface-raised);
+    border-color: var(--border);
+    color: var(--text-soft);
+  }
+
+  .status-dot {
+    background: var(--accent);
+    border-radius: 50%;
+    height: 6px;
+    width: 6px;
   }
 
   .status-toggle.warn {
-    background: rgba(255, 143, 143, 0.12);
-    border-color: #ff8f8f;
-    color: #ff8f8f;
+    color: var(--danger);
+  }
+
+  .status-toggle.warn .status-dot {
+    background: var(--danger);
   }
 
   .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-    margin-top: 0.35rem;
+    background: #15171a;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    margin-top: 0.5rem;
     max-height: min(60vh, 420px);
     overflow: auto;
-    padding: 0.75rem;
+    padding: 0.85rem;
     position: absolute;
     right: 0;
     top: 100%;
-    width: min(360px, calc(100vw - 2rem));
+    width: min(380px, calc(100vw - 2rem));
     z-index: 20;
   }
 
   .meta {
     color: var(--text-muted);
-    font-size: 0.75rem;
-    margin: 0 0 0.5rem;
+    font-size: 0.7rem;
+    margin: 0 0 0.7rem;
   }
 
   ul {
     display: grid;
-    gap: 0.65rem;
+    gap: 0;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -176,8 +213,19 @@
     justify-content: space-between;
   }
 
+  .panel > ul > li {
+    border-top: 1px solid var(--border);
+    padding: 0.65rem 0;
+  }
+
+  .panel > ul > li:last-child {
+    padding-bottom: 0;
+  }
+
   .source {
-    font-weight: 600;
+    color: var(--text-soft);
+    font-size: 0.8rem;
+    font-weight: 650;
     text-transform: capitalize;
   }
 
@@ -193,11 +241,11 @@
 
   .partial .badge,
   .skipped .badge {
-    color: #f5c542;
+    color: var(--warning);
   }
 
   .error .badge {
-    color: #ff8f8f;
+    color: var(--danger);
   }
 
   .message {
@@ -211,5 +259,19 @@
     font-size: 0.75rem;
     margin: 0.35rem 0 0;
     padding-left: 1rem;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 540px) {
+    .status-toggle {
+      font-size: 0;
+      gap: 0;
+      padding: 0.55rem;
+    }
   }
 </style>

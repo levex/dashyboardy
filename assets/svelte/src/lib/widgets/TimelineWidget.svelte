@@ -3,24 +3,18 @@
 
   let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
-  let activities = $state<Activity[]>([])
   let source = $state<string>('all')
 
   const sources = ['all', 'github', 'redmine', 'rss']
 
-  async function load() {
-    try {
-      const data = await api.timeline(source === 'all' ? undefined : source)
-      activities = data.activities
-    } catch {
-      activities = []
-    }
-  }
-
-  $effect(() => {
+  const activities = $derived.by(async (): Promise<Activity[]> => {
     refreshToken
     source
-    load()
+    try {
+      return (await api.timeline(source === 'all' ? undefined : source)).activities
+    } catch {
+      return []
+    }
   })
 </script>
 
@@ -31,28 +25,29 @@
 </div>
 
 <ul class="widget-list">
-  {#each activities as activity (activity.id)}
-    <li class="item">
-      <div class="row">
-        <span class="badge">{activity.source}</span>
-        <span class="time">{relativeTime(activity.occurred_at)}</span>
-      </div>
-      {#if activity.url}
-        <a class="title line-clamp-2" href={activity.url} target="_blank" rel="noreferrer">{activity.title}</a>
-      {:else}
-        <div class="title line-clamp-2">{activity.title}</div>
-      {/if}
-      <div class="meta truncate">{activity.author ?? activity.source_instance}</div>
-    </li>
-  {:else}
-    <li class="widget-empty">No activity yet</li>
-  {/each}
+  {#await activities then loadedActivities}
+    {#each loadedActivities as activity (activity.id)}
+      <li class="item">
+        <div class="row">
+          <span class="badge">{activity.source}</span>
+          <span class="time">{relativeTime(activity.occurred_at)}</span>
+        </div>
+        {#if activity.url}
+          <a class="title line-clamp-2" href={activity.url} target="_blank" rel="noreferrer">{activity.title}</a>
+        {:else}
+          <div class="title line-clamp-2">{activity.title}</div>
+        {/if}
+        <div class="meta truncate">{activity.author ?? activity.source_instance}</div>
+      </li>
+    {:else}
+      <li class="widget-empty">No activity yet</li>
+    {/each}
+  {/await}
 </ul>
 
 <style>
   .item {
     border-bottom: 1px solid var(--border);
-    padding-bottom: 0.65rem;
   }
 
   .item:last-child {
@@ -67,11 +62,12 @@
 
   .badge {
     background: var(--accent-soft);
+    border: 1px solid rgba(143, 168, 255, 0.2);
     border-radius: 999px;
     color: var(--accent);
-    font-size: 0.65rem;
-    font-weight: 600;
-    padding: 0.1rem 0.45rem;
+    font-size: 0.62rem;
+    font-weight: 650;
+    padding: 0.12rem 0.4rem;
     text-transform: uppercase;
   }
 
@@ -82,10 +78,11 @@
   }
 
   .title {
-    color: var(--text);
+    color: var(--text-soft);
     display: block;
-    font-size: 0.85rem;
-    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-top: 0.35rem;
     text-decoration: none;
   }
 
@@ -95,7 +92,7 @@
 
   .meta {
     color: var(--text-muted);
-    font-size: 0.72rem;
-    margin-top: 0.15rem;
+    font-size: 0.68rem;
+    margin-top: 0.25rem;
   }
 </style>

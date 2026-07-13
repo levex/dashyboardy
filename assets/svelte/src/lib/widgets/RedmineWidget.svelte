@@ -3,22 +3,16 @@
 
   let { refreshToken = 0 } = $props<{ refreshToken?: number }>()
 
-  let issues = $state<RedmineIssue[]>([])
   let showAssigned = $state(false)
 
-  async function load() {
-    try {
-      const data = await api.redmine(showAssigned)
-      issues = data.issues
-    } catch {
-      issues = []
-    }
-  }
-
-  $effect(() => {
+  const issues = $derived.by(async (): Promise<RedmineIssue[]> => {
     refreshToken
     showAssigned
-    load()
+    try {
+      return (await api.redmine(showAssigned)).issues
+    } catch {
+      return []
+    }
   })
 </script>
 
@@ -28,24 +22,25 @@
 </div>
 
 <ul class="widget-list">
-  {#each issues as issue (issue.id)}
-    <li class="item">
-      <div class="row">
-        <span class="id">#{issue.issue_id}</span>
-        <span class="time">{relativeTime(issue.updated_at)}</span>
-      </div>
-      <div class="title line-clamp-2">{issue.title}</div>
-      <div class="meta truncate">{issue.status} · {issue.assignee ?? 'unassigned'}</div>
-    </li>
-  {:else}
-    <li class="widget-empty">No issues loaded yet</li>
-  {/each}
+  {#await issues then loadedIssues}
+    {#each loadedIssues as issue (issue.id)}
+      <li class="item">
+        <div class="row">
+          <span class="id">#{issue.issue_id}</span>
+          <span class="time">{relativeTime(issue.updated_at)}</span>
+        </div>
+        <div class="title line-clamp-2">{issue.title}</div>
+        <div class="meta truncate">{issue.status} · {issue.assignee ?? 'unassigned'}</div>
+      </li>
+    {:else}
+      <li class="widget-empty">No issues loaded yet</li>
+    {/each}
+  {/await}
 </ul>
 
 <style>
   .item {
     border-bottom: 1px solid var(--border);
-    padding-bottom: 0.65rem;
   }
 
   .item:last-child {
@@ -60,8 +55,8 @@
 
   .id {
     color: var(--accent);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 650;
   }
 
   .time {
@@ -71,13 +66,15 @@
   }
 
   .title {
-    font-size: 0.85rem;
-    margin-top: 0.2rem;
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-top: 0.3rem;
   }
 
   .meta {
     color: var(--text-muted);
-    font-size: 0.72rem;
-    margin-top: 0.15rem;
+    font-size: 0.68rem;
+    margin-top: 0.25rem;
   }
 </style>
